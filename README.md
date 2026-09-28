@@ -134,30 +134,30 @@
 %define IA32_FEATURE_CONTROL 0x0000003A ; Lock register for enabling VMX/SVM at BIOS level securely
 
 ; =======================================================================
-; 18. LEGACY COMPATIBILITY & SEGMENT EXPANSIONS (Ring 0 / Ring 3)
+; 17. LEGACY COMPATIBILITY & SEGMENT EXPANSIONS (Ring 0 / Ring 3)
 ; =======================================================================
 %define IA32_DS_AREA        0x00000600  ; Debug Store Area (Allocates a physical buffer boundary for BTS and PEBS)
 %define IA32_EBC_FREQUENCY  0x0000002C  ; Processor Front Side Bus (FSB) / Core Frequency Scaling Status register
 
 ; =======================================================================
-; 21. PROCESSOR INVENTORY & SERIALIZATION CONTROL
+; 18. PROCESSOR INVENTORY & SERIALIZATION CONTROL
 ; =======================================================================
 %define IA32_PPIN_CTL       0x0000004E  ; Protected Processor Inventory Number Control (Lock/Enable)
 %define IA32_PPIN           0x0000004F  ; Read-only 64-bit unique physical silicon identifier serial number
 
 ; =======================================================================
-; 22. PREFETCH CONTROL & AMBIENT PERFORMANCE TUNING
+; 19. PREFETCH CONTROL & AMBIENT PERFORMANCE TUNING
 ; =======================================================================
 %define IA32_MISC_PREFETCH_CTL 0x000001A4 ; Hardware Prefetcher Control Register (Disable/Enable L1/L2 prefetchers)
 
 ; =======================================================================
-; 23: LEGACY BARE-METAL OUTPUT (VGA & SERIAL COM1) FOR X86
+; 20: LEGACY BARE-METAL OUTPUT (VGA & SERIAL COM1) FOR X86
 ; =======================================================================
 %define X86_COM1_PORT       0x3F8       ; Serial Port COM1 Address (Used with OUT instruction)
 %define VGA_TEXT_MODE_BASE  0x000B8000  ; Physical memory address of the screen (Write ASCII here to show text)
 
 ; =======================================================================
-; 24: ARCHITECTURAL CPU FLAGS & EFER BITS FOR X86_64
+; 21: ARCHITECTURAL CPU FLAGS & EFER BITS FOR X86_64
 ; =======================================================================
 %define EFLAGS_IF_BIT       9           ; Interrupt Flag (1 = Physical interrupts enabled)
 %define EFLAGS_VM_BIT       17          ; Virtual 8086 Mode Flag (Used to detect legacy guests)
