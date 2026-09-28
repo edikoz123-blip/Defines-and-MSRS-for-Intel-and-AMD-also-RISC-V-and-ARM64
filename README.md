@@ -134,32 +134,10 @@
 %define IA32_FEATURE_CONTROL 0x0000003A ; Lock register for enabling VMX/SVM at BIOS level securely
 
 ; =======================================================================
-; 17. RECENT HARDWARE FRED INTERFACES (Flexible Return and Event Delivery)
-; =======================================================================
-%define IA32_FRED_RSP0      0x000001CC  ; Flexible Return level 0 Stack Pointer Target Vector
-%define IA32_FRED_RSP1      0x000001CD  ; Flexible Return level 1 Stack Pointer Target Vector
-%define IA32_FRED_CONFIG    0x000001D4  ; FRED Architectural Master Configuration Setup Frame
-
-; =======================================================================
 ; 18. LEGACY COMPATIBILITY & SEGMENT EXPANSIONS (Ring 0 / Ring 3)
 ; =======================================================================
 %define IA32_DS_AREA        0x00000600  ; Debug Store Area (Allocates a physical buffer boundary for BTS and PEBS)
 %define IA32_EBC_FREQUENCY  0x0000002C  ; Processor Front Side Bus (FSB) / Core Frequency Scaling Status register
-
-; =======================================================================
-; 19. ADVANCED HARDWARE SPECULATION DEFENSES & HARDENING
-; =======================================================================
-%define IA32_UARCH_MISC_CTL 0x000001B0  ; Microarchitectural Miscellaneous Control (Locks DOITM to defeat side-channel leaks)
-%define IA32_SGX_LEPUBKEYHASH0 0x0000008C ; SGX Launch Enclave Public Key Hash Frame 0 (Common on modern microarchitectures)
-%define IA32_SGX_LEPUBKEYHASH1 0x0000008D ; SGX Launch Enclave Public Key Hash Frame 1
-%define IA32_SGX_LEPUBKEYHASH2 0x0000008E ; SGX Launch Enclave Public Key Hash Frame 2
-%define IA32_SGX_LEPUBKEYHASH3 0x0000008F ; SGX Launch Enclave Public Key Hash Frame 3
-
-; =======================================================================
-; 20. CORE POWER MONITORING & ENERGY LIMITS
-; =======================================================================
-%define MSR_RAPL_POWER_UNIT 0x00000606  ; Running Average Power Limit (RAPL) Power Unit Frame
-%define MSR_PKG_ENERGY_STATUS 0x00000611 ; Read-only actual silicon package cumulative energy usage
 
 ; =======================================================================
 ; 21. PROCESSOR INVENTORY & SERIALIZATION CONTROL
@@ -173,13 +151,13 @@
 %define IA32_MISC_PREFETCH_CTL 0x000001A4 ; Hardware Prefetcher Control Register (Disable/Enable L1/L2 prefetchers)
 
 ; =======================================================================
-; PART 23: LEGACY BARE-METAL OUTPUT (VGA & SERIAL COM1) FOR X86
+; 23: LEGACY BARE-METAL OUTPUT (VGA & SERIAL COM1) FOR X86
 ; =======================================================================
 %define X86_COM1_PORT       0x3F8       ; Serial Port COM1 Address (Used with OUT instruction)
 %define VGA_TEXT_MODE_BASE  0x000B8000  ; Physical memory address of the screen (Write ASCII here to show text)
 
 ; =======================================================================
-; PART 24: ARCHITECTURAL CPU FLAGS & EFER BITS FOR X86_64
+; 24: ARCHITECTURAL CPU FLAGS & EFER BITS FOR X86_64
 ; =======================================================================
 %define EFLAGS_IF_BIT       9           ; Interrupt Flag (1 = Physical interrupts enabled)
 %define EFLAGS_VM_BIT       17          ; Virtual 8086 Mode Flag (Used to detect legacy guests)
@@ -189,17 +167,18 @@
 %define EFER_SVME_BIT       12          ; SVM Enable (Crucial flag to unlock AMD Virtualization)
 
 
-;======================================================================== 
-; Part 2- only MSRS for AMD:
-;========================================================================
+; =======================================================================
+; AMD64 SPECIFIC MSR DEFINITIONS (AUTHENTICAMD) - FULL COMPREHENSIVE BANK
+; =======================================================================
 
 ; =======================================================================
-; 1. CORE AMD SVM VIRTUALIZATION MASTER CONTROLS
+; 1. CORE AMD SVM VIRTUALIZATION MASTER CONTROLS (FIXED & VERIFIED)
 ; =======================================================================
-%define VM_CR_MSR           0xC0010112  ; SVM Hardware Virtualization Configuration & Lock Register
-%define VM_HSAVE_PA_MSR     0xC0010114  ; Host Save Area Physical Address (AMD SVM core requirement)
+%define VM_CR_MSR           0xC0010114  ; SVM Hardware Virtualization Configuration & Lock Register (Fixed address)
+%define VM_HSAVE_PA_MSR     0xC0010117  ; Host Save Area Physical Address (AMD SVM core requirement - Fixed address)
+%define MSR_AMD_SMM_ADDR    0xC0010112  ; SMM TSEG Base Address Register (Physical SMM protection)
 %define MSR_VM_IGNNE        0xC0010115  ; SVM Ignore Numeric Error Mitigation Register (Legacy virtualization lock)
-%define MSR_AMD_EXT_HW_CR   0xC0010015  ; AMD Extended Hardware Configuration (TSC frequency & SVM feature control)
+%define MSR_HW_CR           0xC0010015  ; Hardware Configuration Register (TSC frequency lock parameters)
 
 ; =======================================================================
 ; 2. ADVANCED HARDWARE ENCRYPTION & ATTRIBUTES (AMD SEV / SEV-SNP)
@@ -219,7 +198,6 @@
 ; 4. AMD ADVANCED SYSTEM ARCHITECTURE & EXCEPTION VECTOR EXTENSIONS
 ; =======================================================================
 %define MSR_AMD_PATCH_LEVEL 0x0000008B  ; Current Microcode Patch Level Revision (Read-Only validation)
-%define MSR_HW_CR           0xC0010015  ; Hardware Configuration Register (TSC frequency lock parameters)
 %define MSR_NB_CFG          0xC001001F  ; Northbridge Configuration Interface (Advanced memory profiling)
 %define MSR_EXT_FEATURES    0xC0010058  ; Extended Exception Vector Configuration and Silicon Attributes
 
@@ -256,7 +234,7 @@
 %define MSR_AMD_BU_CFG2      0xC001102B ; Bus Unit Configuration 2 (Contains custom serialization flags for speculation)
 
 ; =======================================================================
-; 10. AMD INSTRUCTION-BASED SAMPLING (IBS CONTROLS)
+; 10. AMD INSTRUCTION-BASED SAMPLING (IBS CONTROLS - FETCH)
 ; =======================================================================
 %define MSR_AMD_IBSFETCHCTL  0xC0011030 ; IBS Fetch Control Register (Manages tag-on-fetch tracking for instructions)
 %define MSR_AMD_IBSFETCHLINAD 0xC0011031 ; IBS Fetch Linear Address Register (Reads the RIP that triggered the fetch event)
@@ -285,15 +263,209 @@
 %define MSR_AMD_NAME_STRING_5 0xC0010035 ; Processor Name String Register 5
 
 ; =======================================================================
-; 14. AMD ADVANCED SYSTEM CONFIGURATION & VIRTUALIZATION LOCKS
+; 14. AMD CCX TOPOLOGY & CACHE COHERENCY MATRIX
 ; =======================================================================
-%define MSR_AMD_VM_CR       0xC0010114  ; SVM Hardware Virtualization Control and Lock Verification
+%define MSR_AMD_CCX_CORE_ID 0xC001100C  ; Read-only physical Core ID/Node ID for NUMA topology (Fixed address)
+%define MSR_AMD_L3_CONFIG   0xC0011022  ; AMD Specific L3 Cache Partitioning and Interleave Control
 
 ; =======================================================================
-; 15. AMD CCX TOPOLOGY & CACHE COHERENCY MATRIX
+; 15. CORE POWER MONITORING & ENERGY LIMITS
 ; =======================================================================
-%define MSR_AMD_CCX_CORE_ID 0xC0011020  ; Read-only physical Core ID relative to the current CCX cluster
-%define MSR_AMD_L3_CONFIG   0xC0011022  ; AMD Specific L3 Cache Partitioning and Interleave Control
+%define MSR_RAPL_POWER_UNIT 0xC0010299  ; Running Average Power Limit (RAPL) Power Unit Frame
+%define MSR_PKG_ENERGY_STATUS 0xC001029B ; Read-only actual silicon package cumulative energy usage
+
+; =======================================================================
+; 16. ADVANCED CPPC PERFORMANCE HARDWARE TUNING (NEW EXTENSION)
+; =======================================================================
+%define MSR_AMD_CPPC_CAP1   0xC00102B0  ; CPPC Target Capability Register (Highest/efficient silicon frequencies)
+%define MSR_AMD_CPPC_ENABLE 0xC00102B1  ; CPPC Hardware Core Optimization Enable Switch
+%define MSR_AMD_CPPC_REQ    0xC00102B3  ; CPPC Request Register (Force dynamic vCPU clock limits)
+
+; =======================================================================
+; 17. INSTRUCTION-BASED SAMPLING EXECUTION TRACKING (NEW EXTENSION)
+; =======================================================================
+%define MSR_AMD64_IBSOPRIP  0xC0011034  ; Exact RIP causing pipeline stalls during execution sampling
+%define MSR_AMD64_IBSOPDATA 0xC0011035  ; IBS Op Data (Cache misses, memory attributes and hardware faults)
+%define MSR_AMD64_IBSOPDATA2 0xC0011036 ; IBS Op Data 2 Register (Exact execution timing in hardware cycles)
+
+; =======================================================================
+; 18. RUNTIME MICROCODE INJECTION ENGINE (NEW EXTENSION)
+; =======================================================================
+%define MSR_AMD_PATCH_LOADER 0xC0010020 ; Microcode Patch Loader Register (Inject updates straight to silicon)
+
+; =======================================================================
+; AMD64 SPECIFIC MSR DEFINITIONS (PART 2 - THE ULTIMATE EXTENSION)
+; =======================================================================
+
+; =======================================================================
+; 19. AMD x2AVIC VIRTUAL x2APIC SYSTEM MONITORING (CRITICAL FOR GUEST INTERRUPTS)
+; =======================================================================
+%define MSR_AMD_X2APIC_ID       0x00000802  ; Virtual x2APIC ID MSR (Intercepted by x2AVIC to identify guest vCPU)
+%define MSR_AMD_X2APIC_TPR      0x00000808  ; Task Priority Register (Controls guest interrupt filtering)
+%define MSR_AMD_X2APIC_PPR      0x0000080A  ; Processor Priority Register (Current execution priority level)
+%define MSR_AMD_X2APIC_EOI      0x0000080B  ; End of Interrupt Register (Signaled by Guest without VM-Exit)
+%define MSR_AMD_X2APIC_LDR      0x0000080D  ; Logical Destination Register for virtual interrupt routing
+%define MSR_AMD_X2APIC_Spurious 0x0000080F  ; Spurious Interrupt Vector Register
+%define MSR_AMD_X2APIC_ISR0     0x00000810  ; In-Service Register Frame 0 (Tracks active virtual interrupts)
+%define MSR_AMD_X2APIC_ICR      0x00000830  ; Interrupt Command Register (x2AVIC emulates inter-processor interrupts)
+
+; =======================================================================
+; 20. AMD SPECIFIC CACHE CONTROLS & MEMORY CONFIGURATION
+; =======================================================================
+%define MSR_AMD_SYS_CFG         0xC0000010  ; System Configuration (Contains MtrrFixDramEn to lock fixed MTRRs)
+%define MSR_AMD_TOP_MEM         0xC001001A  ; Top of Memory 1 (Defines boundary between normal RAM and MMIO space)
+%define MSR_AMD_TOP_MEM2        0xC001001D  ; Top of Memory 2 (Defines memory space upper boundaries above 4GB)
+
+; =======================================================================
+; 21. AMD FIXED-RANGE MTRR MEMORY ACCESS TYPE MAPS
+; =======================================================================
+%define MSR_AMD_MTRRfix64k_00000 0x00000250 ; AMD Fixed MTRR for lowest 64KB block (Controls physical DRAM caching)
+%define MSR_AMD_MTRRfix16k_80000 0x00000258 ; Fixed MTRR mapping for 80000h–9FFFFh physical address space
+%define MSR_AMD_MTRRfix16k_A0000 0x00000259 ; Fixed MTRR mapping for A0000h–BFFFFh physical address space
+%define MSR_AMD_MTRRfix4k_C0000  0x00000268 ; Fixed MTRR mapping for C0000h–C7FFFh video BIOS space
+
+; =======================================================================
+; AMD64 SPECIFIC MSR DEFINITIONS (PART 3 - THE PMU & PERFORMANCE SHIELD)
+; =======================================================================
+
+; =======================================================================
+; 22. AMD CORE PERFORMANCE COUNTER EVENT SELECTORS (PERF_CTL)
+; =======================================================================
+%define MSR_AMD_PERF_CTL0       0xC0010000  ; Performance Event Select 0 (Controls what hardware event to monitor)
+%define MSR_AMD_PERF_CTL1       0xC0010001  ; Performance Event Select 1
+%define MSR_AMD_PERF_CTL2       0xC0010002  ; Performance Event Select 2
+%define MSR_AMD_PERF_CTL3       0xC0010003  ; Performance Event Select 3
+%define MSR_AMD_PERF_CTL4       0xC0010200  ; Performance Event Select 4 (Extended counter for modern Zen cores)
+%define MSR_AMD_PERF_CTL5       0xC0010202  ; Performance Event Select 5
+
+; =======================================================================
+; 23. AMD CORE PERFORMANCE COUNTER DATA REGISTERS (PERF_CTR)
+; =======================================================================
+%define MSR_AMD_PERF_CTR0       0xC0010004  ; Performance Counter Data 0 (Holds the actual hardware event count)
+%define MSR_AMD_PERF_CTR1       0xC0010005  ; Performance Counter Data 1
+%define MSR_AMD_PERF_CTR2       0xC0010006  ; Performance Counter Data 2
+%define MSR_AMD_PERF_CTR3       0xC0010007  ; Performance Counter Data 3
+%define MSR_AMD_PERF_CTR4       0xC0010201  ; Performance Counter Data 4 (Extended data frame)
+%define MSR_AMD_PERF_CTR5       0xC0010203  ; Performance Counter Data 5
+
+; =======================================================================
+; 24. AMD SPECIFIC VIRTUALIZATION SECURITY HARDENING (LBR & DEEP TRAILING)
+; =======================================================================
+%define MSR_AMD_LBR_SELECT      0xC00101C0  ; AMD Last Branch Record Select (Filter which branches the CPU records)
+%define MSR_AMD_LBR_FROM_IP     0xC00101C1  ; LBR Stack From IP (Where the execution jump came from)
+%define MSR_AMD_LBR_TO_IP       0xC00101C2  ; LBR Stack To IP (Where the execution jump landed)
+
+; =======================================================================
+; 25. AMD HARDWARE PASSWORD-PROTECTED DEBUG MSRs 
+; (Requires EDI = 0x9C5A203A before execution to avoid #GP)
+; =======================================================================
+%define MSR_AMD_EXT_DEBUG_BASE  0xC001100A  ; Hidden Debug Controller Configuration Register
+%define MSR_AMD_EXT_DEBUG_DATA  0xC001100B  ; Debug Output Buffer Register (Reads physical silicon states)
+
+; =======================================================================
+; 26. UNDOCUMENTED AMD MSR BREAKPOINT TRAPS
+; =======================================================================
+%define MSR_AMD_BREAKPOINT      0xC001100E  ; MSR Breakpoint Target Address (Triggers hardware intercept)
+%define MSR_AMD_BREAKPOINT_MASK 0xC001100F  ; MSR Breakpoint Filter Mask (Defines target bits range)
+
+; =======================================================================
+; 27. UNDOCUMENTED BUS ARCHITECTURE & BRANCH TRACING (BHTrace Engine)
+; =======================================================================
+%define MSR_AMD_BHTRACE_CTL     0xC0011010  ; Bus Hardware Trace Master Control Switch
+%define MSR_AMD_BHTRACE_DATA    0xC0011011  ; Bus Hardware Trace User Data Collect Frame
+
+; =======================================================================
+; 28. UNDOCUMENTED SILICON ISOLATION & PREFETCH LOCKS
+; =======================================================================
+%define MSR_AMD_DC_CFG_SECRET   0xC0011022  ; Undocumented Data Cache configuration for disabling prefetchers
+
+; =======================================================================
+; AMD64 SPECIFIC MSR DEFINITIONS (THE FORBIDDEN DEEP-SILICON EXTENSION)
+; =======================================================================
+
+; =======================================================================
+; 29. AMD PERFORMANCE BOOST & THERMAL RATIO LOCKS (INTERNAL TUNING)
+; =======================================================================
+%define MSR_AMD_CORED_CFG       0xC001102C  ; Core Performance Configuration (Hidden switch used by AMD Ryzen Master to bypass boost limits)
+%define MSR_AMD_THM_CR_CYC      0xC0010073  ; Thermal Hardware Cycle Modulation (Directly controls physical throttling)
+
+; =======================================================================
+; 30. AMD EXPERIMENTAL SPECULATION HARDENING (Zen 4 / Zen 5 Shielder)
+; =======================================================================
+%define MSR_AMD_PPIN_CTL_SECRET 0xC001004E  ; Hidden Protected Processor Inventory Number Lock Control
+%define MSR_AMD_SPECTRE_V4_CTL  0xC0011024  ; Custom speculative store bypass disable (Alternative hardware-level mitigation address)
+
+; =======================================================================
+; 31. AMD HARDWARE ERROR INJECTION & SILICON CORRUPTION INTRUSION
+; =======================================================================
+%define MSR_AMD_ERR_INJECT      0xC001011E  ; Machine Check Architecture Error Injection Trigger (Forces simulated silicon faults)
+%define MSR_AMD_ERR_STATUS_MASK 0xC001011F  ; MCA Hardware Bank Intercept Filter Mask
+
+; =======================================================================
+; 32. AMD EMBEDDED CO-PROCESSOR SECURITY SHIELDS (PSP GATEWAY)
+; =======================================================================
+%define MSR_AMD_PSP_COMMAND     0xC00110A0  ; Platform Security Processor Host Command Pipeline Interface
+%define MSR_AMD_PSP_STATUS      0xC00110A1  ; Platform Security Processor Hardware Fuses and Active Status Frame
+
+; =======================================================================
+; AMD64 SPECIFIC MSR DEFINITIONS (THE FINAL SILICON BREAKPOINT LAYER)
+; =======================================================================
+
+; =======================================================================
+; 33. AMD EXTENDED MACHINE CHECK ARCHITECTURE (MCA EXTRAS)
+; =======================================================================
+%define MSR_AMD_MCA_CFG         0xC0010044  ; MCA Configuration Register (Determines how silicon errors are reported to Host)
+%define MSR_AMD_MCA_EXT_CTL0    0xC0010050  ; Extended MCA Control for Core Bank 0 (Advanced hardware logging)
+%define MSR_AMD_MCA_EXT_STAT0   0xC0010051  ; Extended MCA Status Frame 0 (Reads physical silicon error telemetry)
+
+; =======================================================================
+; 34. AMD ARCHITECTURAL THREAD TOPOLOGY & THREAD PREFERENCE
+; =======================================================================
+%define MSR_AMD_TH_PR_CTL       0xC0011028  ; Thread Preference Control (Allows the Hypervisor to prioritize specific vCPUs)
+%define MSR_AMD_ASYM_CORE_MAP   0xC001103A  ; Asymmetric Core Mapping (Identifies high-performance vs. efficient cores in modern Zen layouts)
+
+; =======================================================================
+; 35. AMD SILICON DEBUGGER EMULATION INTERCEPT
+; =======================================================================
+%define MSR_AMD_HDT_CTRL        0xC001100D  ; Hardware Debug Tool Intercept (Captures physical debugger connection events)
+
+; =======================================================================
+; AMD64 SPECIFIC MSR DEFINITIONS (THE FORBIDDEN FABRIC LAYER - UNDOCUMENTED)
+; =======================================================================
+
+; =======================================================================
+; 36. AMD INFINITY FABRIC DATA ROUTING CONTROLS (UNDOCUMENTED)
+; =======================================================================
+%define MSR_AMD_FABRIC_CFG      0xC0011000  ; Infinity Fabric Configuration (Controls inter-core communication priorities)
+%define MSR_AMD_FABRIC_SNOOP    0xC0011003  ; Hidden Fabric Snoop Control Register (Intercepts cache invalidation signals)
+
+; =======================================================================
+; 37. AMD ARCHITECTURAL DATA ALIGNMENT FLUSH SWITCH (UNDOCUMENTED)
+; =======================================================================
+%define MSR_AMD_ALIGN_FORCE     0xC0011018  ; Force Alignment Flush Register (Secret bit here forces memory access serialization)
+
+; =======================================================================
+; 38. AMD ZEN MICROARCHITECTURAL LOCK REGISTERS (UNDOCUMENTED FEATURE LOCKS)
+; =======================================================================
+%define MSR_AMD_FEATURE_LOCK0   0xC001102A  ; Hardware Level Feature Disable Lock (Used by microcode to patch silicon at runtime)
+%define MSR_AMD_FPU_CFG_SECRET  0xC001102F  ; Floating-Point Unit Hidden Configuration (Controls speculative AVX-512 execution blocks)
+
+; =======================================================================
+; 39. AMD MICROARCHITECTURAL EXECUTING CHICKEN BITS (UNDOCUMENTED EX_CFG)
+; =======================================================================
+%define MSR_AMD_EX_CFG          0xC0011021  ; Execution Unit Configuration (Bits here can disable specific hardware optimization pipelines inside ALU)
+%define MSR_AMD_EX_CFG2         0xC001102D  ; Extended Execution Controls (Used by AMD hot-loadable microcode patches to mitigate data leaks)
+
+; =======================================================================
+; 40. AMD STACK-POINTER SPECULATION DEFENSE (THE STACKWARP SHIELD - CVE-2025-29943)
+; =======================================================================
+%define MSR_AMD_LS_CFG2         0xC0011023  ; Load-Store Configuration 2 (Contains the secret bit flipped by July 2025 patches to prevent StackWarp VM integrity breaks)
+
+; =======================================================================
+; 41. AMD FLOATING POINT & AVX VECTOR BALANCING (UNDOCUMENTED FP_CFG)
+; =======================================================================
+%define MSR_AMD_FP_CFG          0xC0011028  ; Floating Point Unit Configuration (Alters execution timing of heavy vector instructions to avoid power surges)
+
 
 
 ;========================================================================
@@ -399,6 +571,30 @@
 ; =======================================================================
 %define IA32_SMBASE                  0x0000009E ; Intel Specific SMM Base relocation mapping address (Protected Ring -2 target)
 %define IA32_VMX_MISC_MSR            0x00000485 ; VMX Miscellaneous Architectural Status flags
+
+; =======================================================================
+; 15. RECENT HARDWARE FRED INTERFACES (Flexible Return and Event Delivery)
+; =======================================================================
+%define IA32_FRED_RSP0      0x000001CC  ; Flexible Return level 0 Stack Pointer Target Vector
+%define IA32_FRED_RSP1      0x000001CD  ; Flexible Return level 1 Stack Pointer Target Vector
+%define IA32_FRED_CONFIG    0x000001D4  ; FRED Architectural Master Configuration Setup Frame
+
+; =======================================================================
+; 16. ADVANCED HARDWARE SPECULATION DEFENSES & HARDENING
+; =======================================================================
+%define IA32_UARCH_MISC_CTL 0x000001B0  ; Microarchitectural Miscellaneous Control (Locks DOITM to defeat side-channel leaks)
+%define IA32_SGX_LEPUBKEYHASH0 0x0000008C ; SGX Launch Enclave Public Key Hash Frame 0 (Common on modern microarchitectures)
+%define IA32_SGX_LEPUBKEYHASH1 0x0000008D ; SGX Launch Enclave Public Key Hash Frame 1
+%define IA32_SGX_LEPUBKEYHASH2 0x0000008E ; SGX Launch Enclave Public Key Hash Frame 2
+%define IA32_SGX_LEPUBKEYHASH3 0x0000008F ; SGX Launch Enclave Public Key Hash Frame 3
+
+; =======================================================================
+; 17. CORE POWER MONITORING & ENERGY LIMITS
+; =======================================================================
+%define MSR_RAPL_POWER_UNIT 0x00000606  ; Running Average Power Limit (RAPL) Power Unit Frame
+%define MSR_PKG_ENERGY_STATUS 0x00000611 ; Read-only actual silicon package cumulative energy usage
+
+
 
 ;there is for RISC-V and ARM:
 
