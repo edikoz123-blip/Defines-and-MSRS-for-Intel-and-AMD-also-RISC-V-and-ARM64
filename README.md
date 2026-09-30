@@ -93,6 +93,7 @@
 %define IA32_L3_QOS_MASK_0  0x00000C90  ; L3 Cache Allocation Mask 0 (Isolates Host cache lanes from Guest)
 %define IA32_L2_QOS_MASK_0  0x00000D10  ; L2 Cache Allocation Mask 0 (Strict hardware core cache partitioning)
 %define IA32_GDT_ALIGN_LOCK 0x000002E0  ; Architectural Alignment Lock MSR (Silicon-level protection against #GP)
+%define IA32_PQR_ASSOC      0x00000C8F  ; Resource Association Register (Links current core execution to a Class of Service)
 
 ; =======================================================================
 ; 11. MULTI-CORE MANAGEMENT & LOCAL APIC x2APIC REGISTERS
@@ -166,6 +167,187 @@
 %define EFER_LMA_BIT        10          ; Long Mode Active (Read-only: status that 64-bit is running)
 %define EFER_SVME_BIT       12          ; SVM Enable (Crucial flag to unlock AMD Virtualization)
 
+; =======================================================================
+; 22: SHARED EXECUTION ARMOR & ENCLAVE HARDENING
+; =======================================================================
+%define IA32_SMM_MCA_CAP    0x0000017D  ; SMM Machine Check Architecture Capabilities (Locks SMM fault logging securely)
+%define IA32_SGX_OWNEREPOCH0 0x00000300 ; SGX Enclave Owner Epoch Register 0 (Cryptographic hardware isolation base)
+%define IA32_SGX_OWNEREPOCH1 0x00000301 ; SGX Enclave Owner Epoch Register 1 (Locks hardware secure enclaves keys)
+%define IA32_CR_S_CET       0x000006A2  ; Kernel Shadow Stack Pointer Control Token Register (Crucial for CET locking)
+
+; =======================================================================
+; 23: SHARED INTERRUPT MATRIX & EXTENDED x2APIC CONTROLS
+; =======================================================================
+%define IA32_X2APIC_VERSION 0x00000803  ; Read Local APIC Version in x2APIC mode (Identifies silicon capability)
+%define IA32_X2APIC_LDR     0x0000080D  ; Logical Destination Register (Controls core clustering layout)
+%define IA32_X2APIC_SIVR    0x0000080F  ; Spurious Interrupt Vector Register (Handles rogue/phantom hardware faults)
+%define IA32_X2APIC_ISR0    0x00000810  ; In-Service Register Bit-Frame 0 (Tracks active hardware interrupts)
+%define IA32_X2APIC_IRR0    0x00000820  ; Interrupt Request Register Bit-Frame 0 (Tracks pending trapped events)
+%define IA32_X2APIC_LVT_TMR 0x00000832  ; Local Vector Table Timer Register (Direct silicon-level timer control)
+
+; =======================================================================
+; 24: PRECISION TIMING CONTROL & CLOCK MODULATION MATRIX
+; =======================================================================
+%define IA32_TSC_AUX        0x00000C00  ; Auxiliary TSC Register (Holds unique core index signed by wrmsr for RDTSCP)
+%define IA32_CLOCK_MODULATION 0x0000019A; Processor Clock Modulation Control (Silicon pulse width throttling interface)
+
+; =======================================================================
+; 25: EXTENDED HARDWARE FAULT DETECTION & MCA BANK EXPANSIONS
+; =======================================================================
+%define IA32_MC1_CTL        0x00000404  ; Hardware Error Bank 1 Control Register (Governs IFU / Instruction Fetch Unit)
+%define IA32_MC1_STATUS     0x00000405  ; Hardware Error Bank 1 Status Frame (Reads active Core Prefetch faults)
+%define IA32_MC2_CTL        0x00000408  ; Hardware Error Bank 2 Control Register (Governs DCU / Data Cache Unit)
+%define IA32_MC2_STATUS     0x00000409  ; Hardware Error Bank 2 Status Frame (Reads physical Memory L1/L2 anomalies)
+
+; =======================================================================
+; 26: KERNEL ADDRESS SHIELDS & SYSCALL PRIVILEGE TRANSITION
+; =======================================================================
+%define IA32_STAR           0xC0000081  ; Ring 0/3 Target Segment Selectors and Core Call Pointers
+%define IA32_LSTAR          0xC0000082  ; Long Mode Target RIP Descriptor for SYSCALL Vector (64-bit Entry)
+%define IA32_CSTAR          0xC0000083  ; Compatibility Mode Target RIP for SYSCALL Vector (Legacy 32-bit)
+%define IA32_FMASK          0xC0000084  ; SYSCALL EFLAGS Mask Register (Clears critical flags on privilege shift)
+%define IA32_KERNEL_GS_BASE 0xC0000102  ; SwapGS Target Pointer (Holds hidden Host/Kernel context data array)
+
+; =======================================================================
+; 27: PLATFORM CONFIGURATION INTERFACE & MICROCODE STATUS
+; =======================================================================
+%define IA32_PLATFORM_INFO  0x000000CE  ; Platform Information Register (Read execution limits and multiplier data)
+%define IA32_MISC_PACKAGE_CTRL 0x000001B4 ; Package Level Hardware Mitigation Control Switch
+%define IA32_UCODE_REV      0x0000008B  ; Microcode Patch Revision Update and Query Register Frame
+
+; =======================================================================
+; 28: EXTENDED INTERRUPT VECTORS & x2APIC LVT FRAMEWORK
+; =======================================================================
+%define IA32_X2APIC_LVT_CMCI 0x0000082F ; Corrected Machine Check Interrupt Vector Control [intel.com]
+%define IA32_X2APIC_LVT_LINT0 0x00000835; Local Interrupt 0 Signal Input Control Wire [intel.com]
+%define IA32_X2APIC_LVT_LINT1 0x00000836; Local Interrupt 1 Signal Input Control Wire [intel.com]
+%define IA32_X2APIC_LVT_ERR  0x00000837 ; Local APIC Error Handling Vector Interface Register [intel.com]
+
+; =======================================================================
+; 29: ADVANCED FABRIC MONITORING & CORE MCA BANK EXPANSIONS
+; =======================================================================
+%define IA32_MC3_CTL        0x0000040C  ; Hardware Error Bank 3 Control Register (Governs System Bus / Interconnect)
+%define IA32_MC3_STATUS     0x0000040D  ; Hardware Error Bank 3 Status Frame (Reads core fabric errors)
+%define IA32_MC4_CTL        0x00000410  ; Hardware Error Bank 4 Control Register (Governs Memory Controller Unit)
+%define IA32_MC4_STATUS     0x00000411  ; Hardware Error Bank 4 Status Frame (Reads DRAM hardware faults)
+
+; =======================================================================
+; 30: THREAD CONTEXT ARMOR & SEGMENT BASE SPECIFICATION
+; =======================================================================
+%define IA32_FS_BASE        0xC0000100  ; Map base linear address for the FS segment descriptor [intel.com]
+%define IA32_GS_BASE        0xC0000101  ; Map base linear address for the GS segment descriptor [intel.com]
+
+; =======================================================================
+; 31: SPECULATIVE VULNERABILITY SHIELD & CORE MUTATION LOCK
+; =======================================================================
+%define IA32_CORE_MUT_LOCK  0x0000009F  ; Core Mutation and Speculative Execution Lock (Locks structural settings)
+
+; =======================================================================
+; 32: THREAD CONTEXT TRACKING & PRECISION RDTSCP VALIDATION
+; =======================================================================
+%define IA32_TSC_AUX        0xC0000103  ; TSC Auxiliary ID Register (Enforces true core index validation for RDTSCP)
+
+; =======================================================================
+; 33: ENERGY TELEMETRY MATRIX & HARDWARE SENSOR ISOLATION
+; =======================================================================
+%define IA32_PLATFORM_ENERGY_STATUS 0x00000606 ; Read-Only platform energy consumption telemetry frame [intel.com]
+%define IA32_RAPL_POWER_UNIT        0x00000606 ; Silicon Power Gate measurement units for hardware sensors [intel.com]
+
+; =======================================================================
+; 34: CONTROL-REGISTER HARDWARE SHIELDS & BIT LOCKS
+; =======================================================================
+%define IA32_MISC_ENABLE_STATUS  0x000001A1 ; Read-only status frame for hardware toggles [intel.com]
+%define IA32_CR3_MRESET_LOCK     0x000002E1 ; Silicon lock that prevents rogue guest modifications to CR3 properties
+
+; =======================================================================
+; 35: SPECULATIVE EXECUTION BARRIERS & DATA SAMPLING ENFORCEMENT
+; =======================================================================
+%define IA32_TSX_CTRL            0x00000122 ; Transactional Synchronization Extensions control (Kills TSX side-channels) [intel.com]
+%define IA32_MCU_OPT_CTRL        0x00000123 ; Microarchitectural Data Sampling Mitigation Control register [intel.com]
+
+; =======================================================================
+; 36: EXTENDED INTERRUPT VECTORS & x2APIC LVT EXTRA MATRIX
+; =======================================================================
+%define IA32_X2APIC_LVT_PCINT    0x00000834 ; Performance Counter Interrupt Vector Control in x2APIC mode [intel.com]
+%define IA32_X2APIC_LVT_THERMAL  0x00000833 ; Thermal Sensor Interrupt Vector Control interface register [intel.com]
+
+; =======================================================================
+; 37: MICROARCHITECTURAL BUFFER ISOLATION & TSX ABORT SWITCH
+; =======================================================================
+%define IA32_TSX_FORCE_ABORT 0x0000010F  ; Force Abort Execution interface (Locks speculative transactional avenues) [intel.com]
+
+; =======================================================================
+; 38: ARCHITECTURAL HARDENING MATRIX & CAPACITY ENUMERATION
+; =======================================================================
+%define IA32_ARCH_MISC_CAPABILITIES 0x000002A0 ; Architectural Miscellaneous Hardware Capabilities and Seals frame [intel.com]
+
+; =======================================================================
+; 39: FABRIC INTERCONNECT FAULT DETECTION & MCA BANK 5 EXPANSION
+; =======================================================================
+%define IA32_MC5_CTL        0x00000414  ; Hardware Error Bank 5 Control Register (Governs Bus Interface Matrix) [intel.com]
+%define IA32_MC5_STATUS     0x00000415  ; Hardware Error Bank 5 Status Frame (Reads physical interconnect faults) [intel.com]
+
+; =======================================================================
+; 40: ADVANCED SPECULATIVE ISOLATION & GUEST CONTEXT CONTROLS
+; =======================================================================
+%define IA32_PREVERIFY_CONTROL   0x00000124  ; Speculative Verification Optimization Mitigation register
+%define IA32_GUEST_IDLE_CTRL     0x00000125  ; Silicon Idle Mitigation and core state monitoring lock
+
+; =======================================================================
+; 41: FABRIC EXPANSION FAULT DETECTION & FINAL MCA BANKS 6 & 7 LOCK
+; =======================================================================
+%define IA32_MC6_CTL             0x00000418  ; Hardware Error Bank 6 Control Register (System Interconnect Fabric)
+%define IA32_MC6_STATUS          0x00000419  ; Hardware Error Bank 6 Status Frame (Reads fabric transport faults)
+%define IA32_MC7_CTL             0x0000041C  ; Hardware Error Bank 7 Control Register (Secondary Memory Controller)
+%define IA32_MC7_STATUS          0x0000041D  ; Hardware Error Bank 7 Status Frame (Reads residual hardware faults)
+
+; =======================================================================
+; 42: MICROARCHITECTURAL CONTEXT SHIELDS & SILICON LEAK MITIGATION
+; =======================================================================
+%define IA32_RF_CTRL             0x00000121  ; Register File Speculative Invalidation Control Switch
+%define IA32_SIMM_CTRL           0x00000126  ; Silicon Information Leakage Mitigation Control Register
+
+; =======================================================================
+; 43: EXTENDED INTERRUPT VECTORS & x2APIC SELF-IPI MATRIX
+; =======================================================================
+%define IA32_X2APIC_SELF_IPI    0x0000083F  ; Self Inter-Processor Interrupt Register in x2APIC mode [intel.com]
+
+; =======================================================================
+; 44: STRUCTURAL PACKAGE THERMAL MITIGATION & ENVELOPE STATUS
+; =======================================================================
+%define IA32_PACKAGE_THERM_STATUS 0x000001B1 ; Read-only status frame for package level thermal monitoring [intel.com]
+%define IA32_PACKAGE_THERM_INTERRUPT 0x000001B2 ; Controls interrupt vectors for global package heat faults [intel.com]
+
+; =======================================================================
+; 45: EXTENDED INTERRUPT VECTORS & x2APIC TIMER MATRIX
+; =======================================================================
+%define IA32_X2APIC_DIV_CONF    0x0000083E  ; APIC Timer Divide Configuration Register in x2APIC mode [intel.com]
+
+; =======================================================================
+; 46: MICROARCHITECTURAL DATA SAMPLING BLOCK & MCU OPT CTRL
+; =======================================================================
+%define IA32_MCU_OPT_CTRL   0x00000123  ; Microarchitectural Data Sampling Mitigation Control (Kills MDS channels) [intel.com]
+
+; =======================================================================
+; 47: SPECULATIVE INTERCEPT REINFORCEMENT & PREVERIFY CONTROL
+; =======================================================================
+%define IA32_PREVERIFY_CONTROL 0x00000124 ; Enforces early hardware verification to block advanced side-channel loops
+
+; =======================================================================
+; 48: REGISTER FILE SPECULATIVE ISOLATION & RRSBA CONTROL
+; =======================================================================
+%define IA32_RRSBA_CTRL     0x00000127  ; Restricted Return Stack Buffer Alternative Control (Locks speculative register file avenues)
+
+; =======================================================================
+; 49: VM BOUNDARY SPECULATION SHIELD & PREDICT CONTROL
+; =======================================================================
+%define IA32_VM_PREDICT_CONTROL 0x00000128 ; Hardwires instruction branch prediction isolation loops between VM context boundaries
+
+; =======================================================================
+; 50: ADVANCED FABRIC MONITORING & FINAL MCA BANK 8 MATRIX
+; =======================================================================
+%define IA32_MC8_CTRL        0x00000420  ; Hardware Error Bank 8 Control Register (Governs Advanced Memory Controller Fabric)
+%define IA32_MC8_STATUS     0x00000421  ; Hardware Error Bank 8 Status Frame (Reads physical structural data faults)
 
 ; =======================================================================
 ; AMD64 SPECIFIC MSR DEFINITIONS (AUTHENTICAMD) - FULL COMPREHENSIVE BANK
