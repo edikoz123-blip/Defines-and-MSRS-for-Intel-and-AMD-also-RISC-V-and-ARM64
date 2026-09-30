@@ -349,6 +349,7 @@
 %define IA32_MC8_CTRL        0x00000420  ; Hardware Error Bank 8 Control Register (Governs Advanced Memory Controller Fabric)
 %define IA32_MC8_STATUS     0x00000421  ; Hardware Error Bank 8 Status Frame (Reads physical structural data faults)
 
+
 ; =======================================================================
 ; AMD64 SPECIFIC MSR DEFINITIONS (AUTHENTICAMD) - FULL COMPREHENSIVE BANK
 ; =======================================================================
@@ -474,6 +475,7 @@
 ; 18. RUNTIME MICROCODE INJECTION ENGINE (NEW EXTENSION)
 ; =======================================================================
 %define MSR_AMD_PATCH_LOADER 0xC0010020 ; Microcode Patch Loader Register (Inject updates straight to silicon)
+
 
 ; =======================================================================
 ; AMD64 SPECIFIC MSR DEFINITIONS (PART 2 - THE ULTIMATE EXTENSION)
@@ -647,6 +649,26 @@
 ; 41. AMD FLOATING POINT & AVX VECTOR BALANCING (UNDOCUMENTED FP_CFG)
 ; =======================================================================
 %define MSR_AMD_FP_CFG          0xC0011028  ; Floating Point Unit Configuration (Alters execution timing of heavy vector instructions to avoid power surges)
+
+; =======================================================================
+; 42: AMD SEV-SNP ENCRYPTION MATRIX & PAGE VALIDATION CONTROLS
+; =======================================================================
+%define MSR_AMD_RMP_BASE        0xC0010132  ; Reverse Map Table (RMP) Base Address (Core control for SNP memory page tracking)
+%define MSR_AMD_RMP_END         0xC0010133  ; Reverse Map Table End Address Boundary Register
+%define MSR_AMD_VMSA_REG_PROT   0xC001013F  ; VMSA Register Protection Switch (Encrypts and locks state-save areas of vCPUs)
+
+; =======================================================================
+; 43: AMD SPECULATIVE EXECUTION SHIELDS & CORE CONFIG EXTRAS
+; =======================================================================
+%define MSR_AMD_THREAD_CONFIG   0xC0011012  ; Thread Configuration Register (Alters pipeline resource allocation per thread)
+%define MSR_AMD_EXT_FEATURES2   0xC001011D  ; Extended Features 2 Layout Register (Unlocks Zen-specific security switches)
+%define MSR_AMD_SYS_CFG2        0xC0000015  ; Extended System Configuration (Additional flags for locking memory types)
+
+; =======================================================================
+; 44: AMD INFINITY FABRIC TELEMETRY & SYSTEM RECOVERY CONTROL
+; =======================================================================
+%define MSR_AMD_FABRIC_ERR_CTL  0xC0011001  ; Infinity Fabric Error Reporting Control Register
+%define MSR_AMD_MSR_DATA_MASK   0xC0011015  ; Secret Data Masking Register (Controls trailing bits alignment visualization)
 
 
 
