@@ -785,6 +785,25 @@
 %define MSR_AMD_FABRIC_ERR_CTL  0xC0011001  ; Infinity Fabric Error Reporting Control Register
 %define MSR_AMD_MSR_DATA_MASK   0xC0011015  ; Secret Data Masking Register (Controls trailing bits alignment visualization)
 
+; ====================================================================================
+;  AMD64 SOC & CHIPSET SECURITY MODEL-SPECIFIC REGISTERS (MSRs)
+; ====================================================================================
+
+; --- AMD System Configuration Register (SYS_CFG) ---
+; Location: Core SoC MSR Space. Controls hardware-enforced DRAM attributes.
+%define AMD_MSR_SYS_CFG                          0xC0010010
+%define AMD_SYS_CFG_SMEE_BIT                     (1 << 23)  ; System Memory Encryption Enable (Enforces TSME/SME in hardware)
+
+; --- AMD SMM Cryptographic Lock Key Register (SMM_KEY) ---
+; Location: Write-Only Register. Seals the SMM execution base against runtime tampering.
+%define AMD_MSR_SMM_KEY                          0xC0010119
+
+; --- AMD SPI Flash ROM Armor Configuration Registers ---
+; Location: AMD Proprietary Bus Protection. Restricts direct x86 execution of SPI flash commands.
+%define AMD_MSR_ROM_PROTECT_BASE                 0xC0010116 ; Base MSR for SPI execution range locking
+%define AMD_MSR_SPI_RESTRICTED_CMD               0xC0010118 ; Bitmask enforcing PSP-only whitelist for SPI Flash transactions
+
+
 ; ==============================================================================
 ; 🔏 ULTIMATE ATOMIC LOCKS: AMD MASTER OVERRIDE REGISTERS (READ-WRITE MSRs)
 ; ------------------------------------------------------------------------------
@@ -832,6 +851,9 @@
 ; Values written into VMCB offset 0x018 to dictate hardware MMU flush policies on VMRUN
 %define AMD_VMCB_TLB_FLUSH_GUEST                 0x00000001 ; Flushes TLB entries associated with current Guest ASID
 %define AMD_VMCB_TLB_FLUSH_ALL                   0x00000003 ; Forces absolute hardware-level flush of the ENTIRE TLB, crushing side-channels
+
+
+
 
 
 ;========================================================================
