@@ -4,6 +4,110 @@
 
 ;this is the MSRS of Intel and AMD 
 
+;Check them after you finish you can probably forgot one of them
+
+; ==============================================================================
+; 🏛️ CODENAME: UNIVERSAL x86-64 ARCHITECTURAL READ-ONLY MSRs
+; Safe to read on BOTH Intel and AMD processors. Universal manuals.
+; ==============================================================================
+%define MSR_IA32_ARCH_CAPABILITIES      0x0000010A ; Anti-exploit hardware manual
+%define MSR_MTRR_CAP                    0x000000FE ; Cache configuration limits
+%define MSR_IA32_MPERF                  0x000000E7 ; Max frequency counter
+%define MSR_IA32_APERF                  0x000000E8 ; Actual frequency counter
+%define MSR_IA32_UCODE_REV              0x0000008B ; Microcode safety version
+
+; ==============================================================================
+; 🛡️ CODENAME: AMD ZEN ONLY - EXCLUSIVE READ-ONLY MSRs
+; CRITICAL: Reading these on Intel hardware forces an immediate #GP Fault!
+; ==============================================================================
+%define MSR_AMD_VM_CR                   0xC0010114 ; AMD SVM virtualization state status
+%define MSR_AMD_PSTATE_STATUS           0xC0010063 ; AMD Core P-State tier (P0-P7)
+
+; ==============================================================================
+; 🔵 CODENAME: INTEL ONLY - EXCLUSIVE READ-ONLY MSRs
+; CRITICAL: Reading these on AMD hardware forces an immediate #GP Fault!
+; ==============================================================================
+%define MSR_IA32_CORE_CAPABILITIES      0x000000CF ; Intel execution queuing capabilities
+%define MSR_IA32_PLATFORM_ID            0x00000011 ; Intel physical die/socket routing identity
+
+
+; ==============================================================================
+; 🛡️ FORTRESS BLOCK: AMD SYSTEM-WIDE HARDWARE SECURITY LOCKS (READ-WRITE)
+; ------------------------------------------------------------------------------
+; EXPLANATION: High-privilege execution overrides and registers inside the core.
+; Writing to these specific targets locks the remaining hidden side-channels,
+; freezes the system clock telemetry against evasion, and hard-fences the BIOS.
+; ==============================================================================
+
+
+; --- SUBSYSTEM CODENAME: AMD SYS_CFG MASTER MACHINE CONFIG REGISTER ---
+; EXPLANATION: Controls foundational caching properties and MTRRs execution rules.
+; ------------------------------------------------------------------------------
+%define AMD_MSR_SYS_CFG                 0xC0010010 
+; [READ/WRITE] System Configuration register. 
+;   • Bit 18 (MtrrMofDis): Must be written with 1 to disable dynamic modification 
+;     of Memory Type Range Registers, ensuring cache boundaries remain frozen.
+;   • Bit 20 (MtrrFixDramModEn): Controls fixed DRAM type alterations.
+
+
+; --- SUBSYSTEM CODENAME: AMD DE_CFG CORE CONFIGURATION LOCK ---
+; EXPLANATION: Hidden microarchitectural execution fence used to disable hardware 
+; debug channels (like LFENCE serialize extensions) that bypass side-channel defenses.
+; ------------------------------------------------------------------------------
+%define AMD_MSR_DE_CFG                  0xC0011029 
+; [READ/WRITE] Decode Configuration Register. 
+;   • Bit 1 (SerialDis): Controls instruction serialization behavior. Written to 1 
+;     to force strict instruction boundaries, neutralizing timing-attack optimizations.
+
+
+; --- SUBSYSTEM CODENAME: AMD TSC REFR_ESH RATE LIMIT (ANTI-TIMING ATTACK) ---
+; EXPLANATION: Controls whether the Time Stamp Counter (TSC) can be tampered with.
+; Written to lock down time telemetry signatures from malware analysis.
+; ------------------------------------------------------------------------------
+%define AMD_MSR_TSC_RATIO               0xC0000104 
+; [READ/WRITE] TSC Ratio Register. Written by the Hypervisor to lock the clock ratio 
+; of the guest, preventing virus code from measuring execution latency or guessing keys.
+
+
+; ==============================================================================
+; 🧠 PROCESSOR CORE MATRIX: AMD MASTER SYSTEM CONTROL REGISTERS (READ-WRITE MSRs)
+; ------------------------------------------------------------------------------
+; EXPLANATION: Model Specific Registers (MSRs) inside the CPU cores that are 
+; active for Read/Write. Altering these targets controls core execution shapes, 
+; page table protections, and the absolute activation of the Virtualization engine.
+; ==============================================================================
+
+
+; --- SUBSYSTEM CODENAME: AMD EXTENDED FEATURE ENABLE REGISTER (EFER) ---
+; EXPLANATION: The core control register enabling long mode and virtualization.
+; ------------------------------------------------------------------------------
+%define AMD_MSR_EFER                    0xC0000080 
+; [READ/WRITE] Injects core execution rules. 
+;   • Bit 8  (LME): Enables Long Mode (64-bit translation).
+;   • Bit 12 (SVME): Secure Virtual Machine Enable. Must be written with 1 
+;     to physically unlock the 'VMRUN' opcode and allow the VMCB cage to activate.
+
+
+; --- SUBSYSTEM CODENAME: AMD SYSENTER CONFIGURATION MATRICES ---
+; EXPLANATION: Registers controlling fast system calls from Ring 3 to Ring 0.
+; ------------------------------------------------------------------------------
+%define AMD_MSR_SYSENTER_CS             0x00000174 ; [READ/WRITE] Code Segment selector for fast privilege transitions
+%define AMD_MSR_SYSENTER_ESP            0x00000175 ; [READ/WRITE] Stack Pointer hook used during execution jumps
+%define AMD_MSR_SYSENTER_EIP            0x00000176 ; [READ/WRITE] Target Entry Point vector where the syscall begins execution
+
+
+; --- SUBSYSTEM CODENAME: AMD MEMORY TYPE RANGE REGISTERS (MTRR MASTER) ---
+; EXPLANATION: Registers defining how cacheability (WB/UC) is applied to physical RAM.
+; ------------------------------------------------------------------------------
+%define AMD_MSR_MTRR_DEF_TYPE           0x000002FF 
+; [READ/WRITE] Default Memory Type register. Written to globally enable/disable 
+; MTRRs and enforce cache boundaries over the hardware layout.
+
+
+
+
+; take care of it after we finish SMM 
+
 ;========================================================================
 ; Part 1 - Shared MSRS hypervisor AMD and Intel:
 ;========================================================================
@@ -75,6 +179,9 @@
 ; 8. TIME STAMP COUNTER (TSC) & ACCURATE TIMING CONTROL
 ; =======================================================================
 %define IA32_TIME_STAMP_COUNTER 0x00000010 ; Raw Hardware Cycle Counter (Target for TSC manipulation)
+; [STICKY BIT] Bit 4 (SMM_LOCK). When written to 1, it permanently disables 
+; modification of the SMM memory ranges, effectively shielding the SMRAM vault.
+
 %define IA32_TSC_ADJUST     0x0000003B  ; TSC Offset Adjustment Frame (Used to hide hypervisor latency)
 %define IA32_TSC_DEADLINE   0x000006E0  ; Local APIC TSC Deadline Mode Timer Control Register
 
@@ -350,9 +457,16 @@
 %define IA32_MC8_STATUS     0x00000421  ; Hardware Error Bank 8 Status Frame (Reads physical structural data faults)
 
 
+
+
+
 ; =======================================================================
 ; AMD64 SPECIFIC MSR DEFINITIONS (AUTHENTICAMD) - FULL COMPREHENSIVE BANK
 ; =======================================================================
+
+
+
+
 
 ; =======================================================================
 ; 1. CORE AMD SVM VIRTUALIZATION MASTER CONTROLS (FIXED & VERIFIED)
@@ -362,6 +476,7 @@
 %define MSR_AMD_SMM_ADDR    0xC0010112  ; SMM TSEG Base Address Register (Physical SMM protection)
 %define MSR_VM_IGNNE        0xC0010115  ; SVM Ignore Numeric Error Mitigation Register (Legacy virtualization lock)
 %define MSR_HW_CR           0xC0010015  ; Hardware Configuration Register (TSC frequency lock parameters)
+									    ; AMD hardware configuration lock check
 
 ; =======================================================================
 ; 2. ADVANCED HARDWARE ENCRYPTION & ATTRIBUTES (AMD SEV / SEV-SNP)
@@ -670,6 +785,53 @@
 %define MSR_AMD_FABRIC_ERR_CTL  0xC0011001  ; Infinity Fabric Error Reporting Control Register
 %define MSR_AMD_MSR_DATA_MASK   0xC0011015  ; Secret Data Masking Register (Controls trailing bits alignment visualization)
 
+; ==============================================================================
+; 🔏 ULTIMATE ATOMIC LOCKS: AMD MASTER OVERRIDE REGISTERS (READ-WRITE MSRs)
+; ------------------------------------------------------------------------------
+; EXPLANATION: The absolute final tier of model-specific registers inside the core.
+; Writing to these addresses establishes strict execution containment and disables
+; hardware configuration modification paths entirely across the system.
+; ==============================================================================
+
+%define AMD_MSR_SMM_TRIGGER_IO          0xC0010113 
+; [READ/WRITE] SMM I/O Trap Register. Written to enforce strict interception windows
+; over specific I/O ports before they can reach the target chipset pins.
+
+%define AMD_MSR_MCA_EXT_CONTROL         0x0000017F 
+; [READ/WRITE] Machine Check Architecture Global Control. Controls hardware error 
+; injection configurations. Written to 0 to completely disable simulated faults.
+
+; ====================================================================================
+;  AMD64 PROPRIETARY HARDWARE CONTROL REGISTERS (MSRs) & VMCB DEFINITIONS
+; ====================================================================================
+; ==============================================================================
+; 🔒 ACTIVE CORE: AMD HARDWARE CONFIGURATION MSR (READ-WRITE MSR)
+; ------------------------------------------------------------------------------
+; EXPLANATION: The master Hardware Configuration Register (HWCR) inside AMD cores.
+; Executing 'wrmsr' here alters foundational execution laws and locks/unlocks
+; system configuration protections across the computing complexes.
+; ==============================================================================
+
+; --- AMD Hardware Control Register (HWCR) ---
+; Location: Architectural AMD MSR Space (0xC001xxxx range). Ignored/Faulted on Intel.
+%define AMD_MSR_HWCR                             0xC0010015
+%define AMD_HWCR_SMMLOCK_BIT                     (1 << 0)   ; Locks SMM configuration registers until hard reset
+%define AMD_HWCR_CPBDIS_BIT                      (1 << 25)  ; Disables Core Performance Boost (Dynamic Turbo)
+
+; --- AMD System Management Mode Mask Register (SMM_MASK) ---
+; Location: Architectural AMD SMM Security Region. Controls TSeg DRAM validation.
+%define AMD_MSR_SMM_MASK                         0xC0010113
+
+; --- AMD VMCB Control Area Offsets ---
+; Structure: Direct layout matching the AMD64 Virtualization Architecture (SVM)
+%define VMCB_CTRL_IOPM_BASE_PA                   0x008      ; [Physical Address] 64-bit base of I/O Permission Map
+%define VMCB_CTRL_MSRP_BASE_PA                   0x010      ; [Physical Address] 64-bit base of MSR Permission Map
+%define VMCB_CTRL_TLB_CONTROL                    0x018      ; [Control Field] 32-bit hardware TLB flush command area
+
+; --- AMD SVM TLB Control Commands ---
+; Values written into VMCB offset 0x018 to dictate hardware MMU flush policies on VMRUN
+%define AMD_VMCB_TLB_FLUSH_GUEST                 0x00000001 ; Flushes TLB entries associated with current Guest ASID
+%define AMD_VMCB_TLB_FLUSH_ALL                   0x00000003 ; Forces absolute hardware-level flush of the ENTIRE TLB, crushing side-channels
 
 
 ;========================================================================
